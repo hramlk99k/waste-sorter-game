@@ -55,15 +55,14 @@ function App() {
   const [openBin, setOpenBin] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [nameColor, setNameColor] = useState(BRIGHT_COLORS[0]);
-  const [bubbleColor, setBubbleColor] = useState('yellow'); // 'yellow', 'green', or 'red'
-
+  const [bubbleColor, setBubbleColor] = useState('yellow'); 
+const [isDragging, setIsDragging] = useState(false);
   const audioCtx = useRef(null);
   const buffers = useRef({});
   const tickAudio = useRef(null);
+
 useEffect(() => {
     audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
-    
-    // Create the object only once here
     const audio = new Audio('/clocktick.mp3');
     audio.loop = true;
     tickAudio.current = audio;
@@ -80,7 +79,6 @@ useEffect(() => {
     loadSound('yay', '/yay.mp3');
     loadSound('oops', '/oops.mp3');
 
-    // Cleanup function to stop sound when component closes
     return () => {
         if (tickAudio.current) {
             tickAudio.current.pause();
@@ -91,17 +89,15 @@ useEffect(() => {
  
 useEffect(() => {
     if (!tickAudio.current) return;
-    
     if (isMuted || gameOver || score === 0) {
       tickAudio.current.pause();
     } else {
       tickAudio.current.play().catch(e => console.log("Waiting for user click..."));
     }
   }, [isMuted, score, gameOver]);
+
  const handleInteraction = () => {
   if (audioCtx.current?.state === 'suspended') audioCtx.current.resume();
-  
-  // Only play if NOT muted, NOT game over, and the game has actually started (score > 0)
   if (!isMuted && score > 0 && !gameOver && tickAudio.current.paused) {
     tickAudio.current.play().catch(() => {});
   }
@@ -115,14 +111,14 @@ useEffect(() => {
     source.start(0);
   };
 
-  const onDrop = (e, binType) => {
-    e.preventDefault();
+  // UPDATED onDrop to work on both mobile and desktop
+  const onDrop = (binType) => {
     handleInteraction();
     if (gameOver) return;
     setOpenBin(null);
-    const draggedType = e.dataTransfer.getData("type");
     
-    if (draggedType === binType) {
+    // Check type against binType
+    if (currentItem.type === binType) {
       playInstantSound('yay');
       setScore(s => s + 10);
       setBubbleColor('green');
@@ -175,31 +171,20 @@ useEffect(() => {
         <div className="score-pill">SCORE: {score}</div>
       </header>
 
-      {/* RIGHT SIDE BUTTONS */}
+      {/* FLAGS ARE BACK */}
       <div className="side-controls-right">
         <button onClick={() => setLang('sv')} className="control-btn orange-btn">
-          <img 
-      src="https://flagcdn.com/w160/se.png" 
-      alt="Sweden" 
-      style={{ width: '100%', borderRadius: '4px' }} 
-    />
-    </button>
+          <img src="https://flagcdn.com/w160/se.png" alt="Sweden" style={{ width: '100%', borderRadius: '4px' }} />
+        </button>
         <button onClick={() => setLang('en')} className="control-btn orange-btn">
-          <img 
-      src="https://flagcdn.com/w160/us.png" 
-      alt="USA" 
-      style={{ width: '100%', borderRadius: '4px' }} 
-    />
-          </button>
+          <img src="https://flagcdn.com/w160/us.png" alt="USA" style={{ width: '100%', borderRadius: '4px' }} />
+        </button>
         <button 
-  className="control-btn orange-btn" 
-  onClick={(e) => {
-    e.stopPropagation(); // THIS IS THE FIX
-    setIsMuted(!isMuted);
-  }}
->
-  {isMuted ? '🔇' : '🔊'}
-</button>
+          className="control-btn orange-btn" 
+          onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+        >
+          {isMuted ? '🔇' : '🔊'}
+        </button>
         <button className="control-btn orange-btn" onClick={() => window.location.reload()}>🔄</button>
       </div>
 
@@ -218,41 +203,64 @@ useEffect(() => {
         </div>
 
         <div className="trash-zone">
-          {isSparkling && (
-    <div className="sparkle-container">
-      ✨⭐✨
-    </div>
-  )}
+          {isSparkling && <div className="sparkle-container">✨⭐✨</div>}
           {!isSparkling && !gameOver && (
-            <div className="trash-item-wrap bounce-float" draggable onDragStart={(e) => e.dataTransfer.setData("type", currentItem.type)}>
-               
-               <img src={currentItem.img} className="trash-img" alt="trash" />
-               <div className="trash-name-tag" style={{ color: nameColor }}>{currentItem.name[lang]}</div>
-            </div>
+            /* TRASH IS NOW MOBILE DRAGGABLE BUT KEEPS WIGGLING */
+          <motion.div 
+  // We remove the "bounce-float" class only while dragging
+  className={`trash-item-wrap ${isDragging ? '' : 'bounce-float'}`}
+  drag
+  dragSnapToOrigin
+  whileDrag={{ scale: 1.2, zIndex: 1000 }}
+  onDragStart={() => {
+    setIsDragging(true); // Stop the wiggle
+    setOpenBin(null);
+  }}
+  onDrag={(e, info) => {
+    const bins = document.querySelectorAll('.bin-item');
+    let hoveredBin = null;
+    bins.forEach(bin => {
+      const r = bin.getBoundingClientRect();
+      if (info.point.x > r.left && info.point.x < r.right && info.point.y > r.top && info.point.y < r.bottom) {
+        hoveredBin = bin.getAttribute('data-type');
+      }
+    });
+    setOpenBin(hoveredBin);
+  }}
+  onDragEnd={(e, info) => {
+    setIsDragging(false); // Restart the wiggle
+    const bins = document.querySelectorAll('.bin-item');
+    let foundType = null;
+    bins.forEach(bin => {
+      const r = bin.getBoundingClientRect();
+      if (info.point.x > r.left && info.point.x < r.right && info.point.y > r.top && info.point.y < r.bottom) {
+        foundType = bin.getAttribute('data-type');
+      }
+    });
+    if (foundType) onDrop(foundType);
+    setOpenBin(null);
+  }}
+>
+   <img src={currentItem.img} className="trash-img" alt="trash" draggable="false" />
+   <div className="trash-name-tag" style={{ color: nameColor }}>{currentItem.name[lang]}</div>
+</motion.div>
           )}
         </div>
 
         {gameOver && (
-  <div className="game-over">
-    <div className="modal">
-      <h2 className="rainbow-text">WINNER!</h2>
-      <div style={{ fontSize: '2rem', marginBottom: '20px', fontWeight: 'bold' }}>
-         Final Score: {score} 🏆
-      </div>
-      <button className="restart-btn" onClick={() => window.location.reload()}>
-        PLAY AGAIN
-      </button>
-    </div>
-  </div>
-)}
+          <div className="game-over">
+            <div className="modal">
+              <h2 className="rainbow-text">WINNER!</h2>
+              <div style={{ fontSize: '2rem', marginBottom: '20px', fontWeight: 'bold' }}>Final Score: {score} 🏆</div>
+              <button className="restart-btn" onClick={() => window.location.reload()}>PLAY AGAIN</button>
+            </div>
+          </div>
+        )}
       </main>
 
       <footer className="bins-container">
         {['plastic', 'paper', 'food', 'battery', 'glass'].map(bin => (
-          <div key={bin} className={`bin-item ${bin} ${openBin === bin ? 'lid-open' : ''}`}
-               onDrop={(e) => onDrop(e, bin)}
-               onDragOver={(e) => { e.preventDefault(); setOpenBin(bin); }}
-               onDragLeave={() => setOpenBin(null)}>
+          <div key={bin} data-type={bin} className={`bin-item ${bin} ${openBin === bin ? 'lid-open' : ''}`}>
             <div className="bin-lid"></div>
             <div className="bin-body">
               <span className="bin-emoji">

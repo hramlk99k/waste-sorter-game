@@ -1,0 +1,352 @@
+@import url('https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Fredoka:wght@700&display=swap');
+
+:root {
+  --sky: #7cceef; --grass: #4fb005; --orange: #FF9800; --yellow: #FFEB3B; 
+  --brown: #8B4513; --red: #F44336; --blue: #007BFF; --green: #71dc74; --dark: #333;
+}
+
+body, html { margin: 0; padding: 0; overflow: hidden; height: 100vh; font-family: 'Fredoka', sans-serif; background: var(--sky); }
+.game-wrapper { width: 100vw; height: 100vh; position: relative; display: flex; flex-direction: column; }
+
+/* FLASHING NEON TITLE */
+.game-header { text-align: center; padding-top: 10px; z-index: 7; }
+.flashing-title {
+  font-family: 'Luckiest Guy'; font-size: 4rem; margin: 0;
+  animation: flashColors 1s linear infinite, titleBounce 2s ease-in-out infinite;
+  filter: drop-shadow(4px 4px 0 var(--dark));
+}
+@keyframes flashColors {
+  0% { color: #ff0000; } 25% { color: #00ff00; } 50% { color: #00e1ff; } 
+  75% { color: #ff00ff; } 100% { color: #ff0000; }
+}
+@keyframes titleBounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+.score-pill { display: inline-block; background: orange; border: 3px solid var(--dark); padding: 5px 30px; border-radius: 40px; font-size: 1.5rem; box-shadow: 0 5px 0 var(--dark); font-weight: 800; margin-top: 5px; }
+
+/* TRASH NAME (COLOR CONTROLLED BY JS) */
+.trash-name-tag {
+  background: rgb(237, 233, 233); border: 3px solid var(--dark); padding: 5px 30px;
+  border-radius: 30px; font-size: 1.5rem; margin-bottom: 10px;
+  box-shadow: 0 4px 0 var(--dark); font-weight: 700;
+}
+
+/* WIGGLY CLOUD BUBBLE */
+.cloud-bubble {
+  width: 100px;
+  min-height: 50px;
+  background: white;
+  position: relative;
+  /* Moves it down as requested */
+  top: 70px; 
+  
+  /* Fun Dialogue Shape */
+  border: 4px solid var(--dark);
+  border-radius: 20px; /* Rounded corners for a fun feel */
+  padding: 15px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: bold;
+  
+  /* Soft shadow for depth */
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.1);
+  animation: wigglyCloud 3s ease-in-out infinite;
+}
+
+/* The "Tail" of the dialogue box */
+.cloud-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -15px; /* Sits slightly below the box */
+  left: 30px;    /* Positions the tail to the left side */
+  
+  /* Creates a triangle using borders */
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 15px solid white; /* Triangle color matches bubble */
+  z-index: 2;
+}
+
+/* The Border for the "Tail" */
+.cloud-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: -21px; /* Slightly lower to act as the border */
+  left: 28px;
+  
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 18px solid var(--dark); /* Border color */
+  z-index: 1;
+}
+
+@keyframes wigglyCloud {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); } /* Gentle floating move */
+}
+
+.bubble-yellow { background-color: var(--yellow); }
+.bubble-green { background-color: var(--green); }
+.bubble-red { background-color: var(--red); }
+
+@keyframes wigglyCloud { 0%, 100% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.1) rotate(2deg); } }
+
+/* RIGHT ORANGE BUTTONS */
+.side-controls-right { position: fixed; right: 30px; top: 40px; display: flex; flex-direction: column; gap: 20px; z-index: 100; }
+.orange-btn {
+  background: var(--orange) !important; color: white; width: 70px; height: 70px; border-radius: 40px;
+  border: 2px solid var(--dark); font-size: 2rem; box-shadow: 0 2px 0 var(--dark); cursor: pointer;
+}
+/* THE POP EFFECT ON HOVER */
+.orange-btn:hover {
+  transform: scale(1.15); /* Makes the button grow slightly */
+  filter: brightness(1.1); /* Makes it look like it's glowing */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Adds a deeper shadow to look like it's lifting */
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Smooth bouncy transition */
+}
+
+/* THE CLICK EFFECT */
+.orange-btn:active {
+  transform: scale(0.95); /* Shrinks slightly when clicked */
+  box-shadow: 0 2px 0 var(--dark); /* Returns to flat shadow */
+}
+
+/* Ensure images/flags inside also scale smoothly */
+.orange-btn img {
+  transition: transform 0.2s ease;
+}
+
+.orange-btn:hover img {
+  transform: scale(1.1); /* Makes the flag inside pop too */
+}
+
+/* BINS & ENVIRONMENT */
+.bins-container { display: flex; justify-content: center; gap: 15px; padding-bottom: 30px; margin-top: auto; z-index: 100; }
+.bin-item { width: 160px; position: relative; }
+.bin-body { height: 190px; border: 5px solid var(--dark); clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%); top: 70px;display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.bin-emoji { font-size: 3rem; }
+.bin-label { color: black; font-weight: 900; font-size: 1rem; }
+
+.plastic .bin-body { background: var(--orange); } .paper .bin-body { background: var(--yellow); }
+.food .bin-body { background: var(--brown); } .battery .bin-body { background: var(--red); }
+.pant .bin-body { background: var(--blue); } .glass .bin-body { background: var(--green); }
+.bin-item.lid-open .bin-lid { transform: rotate(-110deg); }
+.bin-lid { width: 100%; height: 30px; background: #333; border-radius: 10px 10px 0 0; transform-origin: left; transition: 0.3s; }
+
+.plane { position: absolute; font-size: 3.5rem; animation: flight 20s linear infinite; }
+.p1 { top: 5%; animation-duration: 15s; }
+.p2 { top: 15%; animation-duration: 25s; }
+.p3 { top: 25%; animation-duration: 20s; }
+@keyframes flight { from { left: -100px; } to { left: 110vw; } }
+
+.swinging-balloon {position: absolute;
+  font-size: 4rem;
+  z-index: 4;
+  bottom: -100px; /* Start below the screen */
+  user-select: none;
+  pointer-events: none;
+  display: inline-block;
+  filter: drop-shadow(2px 10px 5px rgba(0,0,0,0.2)); }
+  .b-red, .b-blue, .b-yellow {
+  animation: floatUp 15s linear infinite;
+}
+
+/* 2. SWINGING ANIMATIONS (Different directions) */
+
+/* Red swings wide from the left */
+.b-red {
+  left: 20%;
+  animation: floatUp 18s linear infinite, swingLeft 4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+
+/* Blue swings tight and fast from the middle */
+.b-blue {
+  left: 50%;
+  animation: floatUp 14s linear infinite, swingRight 3s ease-in-out infinite;
+  animation-delay: 2s;
+  transform-origin: bottom center;
+}
+
+/* Yellow swings slowly from the right */
+.b-yellow {
+  left: 80%;
+  animation: floatUp 20s linear infinite, swingLeft 5s ease-in-out infinite;
+  animation-delay: 5s;
+  transform-origin: bottom center;
+}
+
+/* --- KEYFRAMES --- */
+
+/* Moves the balloon from bottom to top */
+@keyframes floatUp {
+  0% { bottom: -100px; }
+  100% { bottom: 110vh; }
+}
+
+/* Swing Direction A */
+@keyframes swingLeft {
+  0%, 100% { transform: rotate(-15deg) translateX(-10px); }
+  50% { transform: rotate(15deg) translateX(10px); }
+}
+
+/* Swing Direction B */
+@keyframes swingRight {
+  0%, 100% { transform: rotate(20deg) translateX(15px); }
+  50% { transform: rotate(-20deg) translateX(-15px); }
+}
+@keyframes floatUp { from { bottom: -100px; } to { bottom: 110vh; } }
+
+.grass-bg { position: absolute; bottom: 0; width: 100%; height: 260px; background: var(--grass); border-top: 10px solid #45a001; z-index: 1; }
+.character-zone { position: absolute; left: 4%; bottom: 110px; z-index: 20; display: flex; flex-direction: column; align-items: center; }
+.kid-container { width: 300px; height: 550px; }
+.kid-img { width: 100%; height: 100%; object-fit: contain; }
+.trash-zone { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 50; }
+.bounce-float { animation: itemBounce 2.5s ease-in-out infinite; display: flex; flex-direction: column; align-items: center; }
+@keyframes itemBounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-30px) scale(1.1); } }
+.trash-img { max-width: 200px; max-height: 200px; }
+/* Base style for all background clouds */
+.cloud {
+  position: absolute;
+  font-size: 5rem;
+  color: white;
+  opacity: 1;
+  filter: drop-shadow(2px 2px 5px rgba(255,255,255,0.5));
+  z-index: 2;
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Individual Cloud Positions and Speeds */
+.c1 { 
+  top: 10%; 
+  animation: drift 35s linear infinite; 
+}
+
+.c2 { 
+  top: 22%; 
+  font-size: 4rem;
+  opacity: 0.5;
+  animation: drift 50s linear infinite; 
+  animation-delay: -10s; 
+}
+
+.c3 { 
+  top: 5%; 
+  font-size: 7rem;
+  animation: drift 40s linear infinite; 
+  animation-delay: -20s;
+}
+
+.c4 { 
+  top: 18%; 
+  font-size: 3.5rem;
+  opacity: 0.4;
+  animation: drift 60s linear infinite; 
+  animation-delay: -5s;
+}
+
+/* The Drift Animation */
+@keyframes drift {
+  from { left: -150px; }
+  to { left: 110vw; }
+}
+/* --- SPARKLING EFFECT --- */
+.sparkle-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 5rem;
+  z-index: 100;
+  pointer-events: none;
+  animation: sparklePop 0.8s ease-out forwards;
+}
+
+@keyframes sparklePop {
+  0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.5) rotate(180deg); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2) rotate(360deg); opacity: 0; }
+}
+/* --- FULL SCREEN WINNER OVERLAY --- */
+.game-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7); /* Darkens the game behind */
+  backdrop-filter: blur(8px); /* Blurs the background */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.modal {
+  background: white;
+  padding: 50px;
+  border-radius: 40px;
+  border: 10px solid var(--orange);
+  text-align: center;
+  box-shadow: 0 20px 0 rgba(0,0,0,0.3);
+  transform: scale(1);
+  animation: modalPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.rainbow-text {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 5rem;
+  margin: 0 0 30px 0;
+  background: linear-gradient(to right, #ff2400, #e81d1d, #e8b71d, #1de840, #1ddde8, #2b1de8, #dd00f3);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbowMove 2s linear infinite;
+}
+
+/* --- THE RESTART BUTTON --- */
+.restart-btn {
+  background: #58CC02; /* Duolingo Green */
+  color: white;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 900;
+  font-size: 2.5rem;
+  padding: 20px 60px;
+  border: 6px solid #45a001;
+  border-radius: 25px;
+  cursor: pointer;
+  box-shadow: 0 8px 0 #45a001;
+  transition: all 0.1s;
+}
+
+.restart-btn:hover {
+  transform: scale(1.05);
+  background: #61e002;
+}
+
+.restart-btn:active {
+  transform: translateY(6px);
+  box-shadow: 0 2px 0 #45a001;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes modalPop {
+  from { transform: scale(0.5); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes rainbowMove {
+  to { background-position: 200% center; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}

@@ -23,6 +23,11 @@ import toothbrush from './assets/toothbrush.png';
 import trashbag from './assets/trashbag.png';
 import watch from './assets/watch.png';
 
+// Translation dictionary added here
+const TEXTS = {
+  en: { score: "SCORE", winner: "WINNER!", finalScore: "Final Score", playAgain: "PLAY AGAIN", bins: { plastic: "PLASTIC", paper: "PAPER", food: "FOOD", battery: "BATTERY", glass: "GLASS" } },
+  sv: { score: "POÄNG", winner: "VINNARE!", finalScore: "Din Poäng", playAgain: "SPELA IGEN", bins: { plastic: "PLAST", paper: "PAPPER", food: "MATAVFALL", battery: "BATTERIER", glass: "GLAS" } }
+};
 
 const ITEMS = [
   { id: 1, name: { sv: 'PLASTFLASKA', en: 'PLASTIC BOTTLE' }, type: 'plastic', img: bottle },
@@ -56,7 +61,7 @@ function App() {
   const [gameOver, setGameOver] = useState(false);
   const [nameColor, setNameColor] = useState(BRIGHT_COLORS[0]);
   const [bubbleColor, setBubbleColor] = useState('yellow'); 
-const [isDragging, setIsDragging] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const audioCtx = useRef(null);
   const buffers = useRef({});
   const tickAudio = useRef(null);
@@ -111,13 +116,11 @@ useEffect(() => {
     source.start(0);
   };
 
-  // UPDATED onDrop to work on both mobile and desktop
   const onDrop = (binType) => {
     handleInteraction();
     if (gameOver) return;
     setOpenBin(null);
     
-    // Check type against binType
     if (currentItem.type === binType) {
       playInstantSound('yay');
       setScore(s => s + 10);
@@ -168,10 +171,10 @@ useEffect(() => {
 
       <header className="game-header">
         <h1 className="flashing-title">TRASH CRACKER!</h1>
-        <div className="score-pill">SCORE: {score}</div>
+        {/* SCORE TEXT TRANSLATED HERE */}
+        <div className="score-pill">{TEXTS[lang].score}: {score}</div>
       </header>
 
-      {/* FLAGS ARE BACK */}
       <div className="side-controls-right">
         <button onClick={() => setLang('sv')} className="control-btn orange-btn">
           <img src="https://flagcdn.com/w160/se.png" alt="Sweden" style={{ width: '100%', borderRadius: '4px' }} />
@@ -205,54 +208,57 @@ useEffect(() => {
         <div className="trash-zone">
           {isSparkling && <div className="sparkle-container">✨⭐✨</div>}
           {!isSparkling && !gameOver && (
-            /* TRASH IS NOW MOBILE DRAGGABLE BUT KEEPS WIGGLING */
-          <motion.div 
-  // We remove the "bounce-float" class only while dragging
-  className={`trash-item-wrap ${isDragging ? '' : 'bounce-float'}`}
-  drag
-  dragSnapToOrigin
-  whileDrag={{ scale: 1.2, zIndex: 1000 }}
-  onDragStart={() => {
-    setIsDragging(true); // Stop the wiggle
-    setOpenBin(null);
-  }}
-  onDrag={(e, info) => {
-    const bins = document.querySelectorAll('.bin-item');
-    let hoveredBin = null;
-    bins.forEach(bin => {
-      const r = bin.getBoundingClientRect();
-      if (info.point.x > r.left && info.point.x < r.right && info.point.y > r.top && info.point.y < r.bottom) {
-        hoveredBin = bin.getAttribute('data-type');
-      }
-    });
-    setOpenBin(hoveredBin);
-  }}
-  onDragEnd={(e, info) => {
-    setIsDragging(false); // Restart the wiggle
-    const bins = document.querySelectorAll('.bin-item');
-    let foundType = null;
-    bins.forEach(bin => {
-      const r = bin.getBoundingClientRect();
-      if (info.point.x > r.left && info.point.x < r.right && info.point.y > r.top && info.point.y < r.bottom) {
-        foundType = bin.getAttribute('data-type');
-      }
-    });
-    if (foundType) onDrop(foundType);
-    setOpenBin(null);
-  }}
->
-   <img src={currentItem.img} className="trash-img" alt="trash" draggable="false" />
-   <div className="trash-name-tag" style={{ color: nameColor }}>{currentItem.name[lang]}</div>
-</motion.div>
+            <motion.div 
+              className={`trash-item-wrap ${isDragging ? '' : 'bounce-float'}`}
+              drag
+              dragSnapToOrigin
+              whileDrag={{ scale: 1.2, zIndex: 1000 }}
+              onDragStart={() => {
+                setIsDragging(true); 
+                setOpenBin(null);
+              }}
+              onDrag={(e, info) => {
+                const bins = document.querySelectorAll('.bin-item');
+                let hoveredBin = null;
+                bins.forEach(bin => {
+                  const r = bin.getBoundingClientRect();
+                  if (info.point.x > r.left && info.point.x < r.right && info.point.y > r.top && info.point.y < r.bottom) {
+                    hoveredBin = bin.getAttribute('data-type');
+                  }
+                });
+                setOpenBin(hoveredBin);
+              }}
+              onDragEnd={(e, info) => {
+                setIsDragging(false); 
+                const bins = document.querySelectorAll('.bin-item');
+                let foundType = null;
+                bins.forEach(bin => {
+                  const r = bin.getBoundingClientRect();
+                  if (info.point.x > r.left && info.point.x < r.right && info.point.y > r.top && info.point.y < r.bottom) {
+                    foundType = bin.getAttribute('data-type');
+                  }
+                });
+                if (foundType) onDrop(foundType);
+                setOpenBin(null);
+              }}
+            >
+               <img src={currentItem.img} className="trash-img" alt="trash" draggable="false" />
+               <div className="trash-name-tag" style={{ color: nameColor }}>{currentItem.name[lang]}</div>
+            </motion.div>
           )}
         </div>
 
         {gameOver && (
           <div className="game-over">
             <div className="modal">
-              <h2 className="rainbow-text">WINNER!</h2>
-              <div style={{ fontSize: '2rem', marginBottom: '20px', fontWeight: 'bold' }}>Final Score: {score} 🏆</div>
-              <button className="restart-btn" onClick={() => window.location.reload()}>PLAY AGAIN</button>
+              {/* GAME OVER TEXT TRANSLATED HERE */}
+              <h2 className="rainbow-text">{TEXTS[lang].winner}</h2>
+              <div style={{ fontSize: '2rem', marginBottom: '20px', fontWeight: 'bold' }}>
+                {TEXTS[lang].finalScore}: {score} 🏆
+              </div>
+              <button className="restart-btn" onClick={() => window.location.reload()}>
+                {TEXTS[lang].playAgain}
+              </button>
             </div>
           </div>
         )}
@@ -266,7 +272,8 @@ useEffect(() => {
               <span className="bin-emoji">
                 {bin === 'plastic' ? '♻️' : bin === 'paper' ? '📦' : bin === 'food' ? '🍎' : bin === 'battery' ? '🔋'  : '🫙'}
               </span>
-              <span className="bin-label">{bin.toUpperCase()}</span>
+              {/* BIN LABELS TRANSLATED HERE */}
+              <span className="bin-label">{TEXTS[lang].bins[bin]}</span>
             </div>
           </div>
         ))}

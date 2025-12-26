@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import bottle from './assets/bottle.png';
 import paper from './assets/paper.png';
 import applecore from './assets/applecore.png';
-import battery from './assets/battery.jpg';
+import battery from './assets/battery2.png';
 import glassJar from './assets/glass.png'; 
 import kidNormal from './assets/kidNormal.png';
 import kidHappy from './assets/kidHappy.png';
